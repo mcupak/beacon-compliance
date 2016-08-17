@@ -1,4 +1,4 @@
-package com.dnastack.beacon.compliance.util
+package com.dnastack.beacon.compliance.service.util
 
 import com.google.protobuf.GeneratedMessage
 import com.google.protobuf.MessageLite

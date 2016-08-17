@@ -1,4 +1,4 @@
-package com.dnastack.beacon.compliance;
+package com.dnastack.beacon.compliance.service;
 
 import ga4gh.BeaconOuterClass;
 import okhttp3.ResponseBody;
@@ -11,7 +11,7 @@ import java.util.List;
  * @author Artem (tema.voskoboynick@gmail.com)
  * @version 1.0
  */
-public interface RetroService {
+public interface BeaconRetroService {
     String BEACON_INFO_PATH = ".";
     String BEACON_REQUEST_PATH = "query";
 
