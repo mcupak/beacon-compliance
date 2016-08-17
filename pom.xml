@@ -29,7 +29,7 @@
         <version.protobuf>3.0.0-beta-4</version.protobuf>
         <version.retrofit>2.0.2</version.retrofit>
         <version.surfire>2.19.1</version.surfire>
-        <serverToTest.url>http://localhost:8180/beacon-java</serverToTest.url>
+        <serverToTest.url>http://localhost:8180/beacon-java/</serverToTest.url>
     </properties>
 
     <dependencies>
@@ -120,7 +120,7 @@
                 <version>${version.surfire}</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <beaconNetwork.test.url>${serverToTest.url}</beaconNetwork.test.url>
+                        <serverToTest.url>${serverToTest.url}</serverToTest.url>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

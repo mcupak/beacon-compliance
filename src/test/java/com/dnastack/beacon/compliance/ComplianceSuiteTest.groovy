@@ -1,15 +1,16 @@
 package com.dnastack.beacon.compliance
 
-import com.dnastack.beacon.compliance.util.ProtoJsonConverter
+import com.dnastack.beacon.compliance.service.BeaconRetroService
+import com.dnastack.beacon.compliance.service.util.ProtoJsonConverter
 import com.google.protobuf.GeneratedMessage
 import com.google.protobuf.util.JsonFormat
-import ga4gh.BeaconOuterClass
 import okhttp3.ResponseBody
 import org.testng.annotations.Test
 import retrofit2.Retrofit
 
 import java.lang.reflect.Method
 
+import static ga4gh.BeaconOuterClass.*
 import static org.assertj.core.api.Assertions.assertThat
 import static org.assertj.core.api.Assertions.not
 
@@ -20,25 +21,26 @@ import static org.assertj.core.api.Assertions.not
  * @author Artem (tema.voskoboynick@gmail.com)
  * @version 1.0
  */
-class ComplianceSuite {
+class ComplianceSuiteTest {
     final static int OK_HTTP_STATUS = 200;
     final static int BAD_REQUEST_HTTP_STATUS = 400;
 
     final static String API_VERSION = "0.3.0";
 
-    final static RetroService SERVICE
+    final static BeaconRetroService BEACON_SERVICE
 
     static {
         def serverToTestUrl = System.properties.getProperty("serverToTest.url")
         if (serverToTestUrl == null) {
             serverToTestUrl = "http://localhost:8180/beacon-java/" // Default.
         }
+        println serverToTestUrl
 
-        SERVICE = new Retrofit.Builder()
+        BEACON_SERVICE = new Retrofit.Builder()
                 .addConverterFactory(ProtoJsonConverter.create())
                 .baseUrl(serverToTestUrl)
                 .build()
-                .create(RetroService.class);
+                .create(BeaconRetroService.class);
     }
 
     /**
@@ -46,7 +48,7 @@ class ComplianceSuite {
      */
     @Test
     public void testGetBeacon() {
-        def beacon = SERVICE.getBeaconGet().execute().body()
+        def beacon = BEACON_SERVICE.getBeaconGet().execute().body()
 
         assertThat(beacon.getName()).isNotNull();
         assertThat(beacon.getApiVersion()).isEqualTo(API_VERSION);
@@ -60,7 +62,7 @@ class ComplianceSuite {
      */
     @Test
     public void testPostBeaconNotSupported() {
-        def statusCode = SERVICE.getBeaconPost().execute().code()
+        def statusCode = BEACON_SERVICE.getBeaconPost().execute().code()
         assertThat(statusCode).isNotEqualTo(OK_HTTP_STATUS)
     }
 
@@ -69,7 +71,7 @@ class ComplianceSuite {
      */
     @Test
     public void testDeleteBeaconNotSupported() {
-        def statusCode = SERVICE.getBeaconDelete().execute().code()
+        def statusCode = BEACON_SERVICE.getBeaconDelete().execute().code()
         assertThat(statusCode).isNotEqualTo(OK_HTTP_STATUS)
     }
 
@@ -78,7 +80,7 @@ class ComplianceSuite {
      */
     @Test
     public void testPutBeaconNotSupported() {
-        def statusCode = SERVICE.getBeaconPut().execute().code()
+        def statusCode = BEACON_SERVICE.getBeaconPut().execute().code()
         assertThat(statusCode).isNotEqualTo(OK_HTTP_STATUS)
     }
 
@@ -88,10 +90,10 @@ class ComplianceSuite {
      */
     @Test
     public void testGetAllele() throws InterruptedException {
-        def beacon = SERVICE.getBeaconGet().execute().body()
+        def beacon = BEACON_SERVICE.getBeaconGet().execute().body()
         def request = beacon.getSampleAlleleRequests(0)
 
-        def response = SERVICE.getBeaconAlleleResponseGet(
+        def response = BEACON_SERVICE.getBeaconAlleleResponseGet(
                 request.getReferenceName(),
                 request.getStart(),
                 request.getReferenceBases(),
@@ -116,10 +118,10 @@ class ComplianceSuite {
      */
     @Test
     public void testPostAllele() {
-        def beacon = SERVICE.getBeaconGet().execute().body()
+        def beacon = BEACON_SERVICE.getBeaconGet().execute().body()
         def request = beacon.getSampleAlleleRequests(0)
 
-        def response = SERVICE.getBeaconAlleleResponsePost(request).execute().body()
+        def response = BEACON_SERVICE.getBeaconAlleleResponsePost(request).execute().body()
 
         assertThat(response.getAlleleRequest()).isEqualTo(request);
         assertThat(response.getExists()).isTrue();
@@ -135,7 +137,7 @@ class ComplianceSuite {
      */
     @Test
     public void testDeleteAlleleNotSupported() {
-        def statusCode = SERVICE.getBeaconAlleleResponseDelete().execute().code()
+        def statusCode = BEACON_SERVICE.getBeaconAlleleResponseDelete().execute().code()
         assertThat(statusCode).isNotEqualTo(OK_HTTP_STATUS)
     }
 
@@ -144,7 +146,7 @@ class ComplianceSuite {
      */
     @Test
     public void testPutAlleleNotSupported() {
-        def statusCode = SERVICE.getBeaconAlleleResponsePut().execute().code()
+        def statusCode = BEACON_SERVICE.getBeaconAlleleResponsePut().execute().code()
         assertThat(statusCode).isNotEqualTo(OK_HTTP_STATUS)
     }
 
@@ -158,8 +160,8 @@ class ComplianceSuite {
                 .setReferenceBases("")
                 .build()
 
-        def rawResponse = SERVICE.getBeaconAlleleResponsePost(request).execute()
-        def response = fromJson(rawResponse.errorBody(), BeaconOuterClass.BeaconAlleleResponse.class)
+        def rawResponse = BEACON_SERVICE.getBeaconAlleleResponsePost(request).execute()
+        def response = fromJson(rawResponse.errorBody(), BeaconAlleleResponse.class)
 
         assertThat(response.getExists()).isFalse();
         assertThat(response.hasError());
@@ -173,7 +175,7 @@ class ComplianceSuite {
     public void testGetAlleleWithMissingRequiredParams() {
         def request = getSampleAlleleRequest();
 
-        def rawResponse = SERVICE.getBeaconAlleleResponseGet(
+        def rawResponse = BEACON_SERVICE.getBeaconAlleleResponseGet(
                 request.getReferenceName(),
                 null,
                 null,
@@ -182,7 +184,7 @@ class ComplianceSuite {
                 request.getDatasetIdsList(),
                 request.getIncludeDatasetResponses())
                 .execute()
-        def response = fromJson(rawResponse.errorBody(), BeaconOuterClass.BeaconAlleleResponse.class)
+        def response = fromJson(rawResponse.errorBody(), BeaconAlleleResponse.class)
 
         assertThat(response.getExists()).isFalse();
         assertThat(response.hasError());
@@ -198,7 +200,7 @@ class ComplianceSuite {
                 .setIncludeDatasetResponses(false)
                 .build()
 
-        def response = SERVICE.getBeaconAlleleResponseGet(
+        def response = BEACON_SERVICE.getBeaconAlleleResponseGet(
                 request.getReferenceName(),
                 request.getStart(),
                 request.getReferenceBases(),
@@ -222,7 +224,7 @@ class ComplianceSuite {
                 .setIncludeDatasetResponses(true)
                 .build()
 
-        def response = SERVICE.getBeaconAlleleResponseGet(
+        def response = BEACON_SERVICE.getBeaconAlleleResponseGet(
                 request.getReferenceName(),
                 request.getStart(),
                 request.getReferenceBases(),
@@ -246,7 +248,7 @@ class ComplianceSuite {
                 .setIncludeDatasetResponses(false)
                 .build()
 
-        def response = SERVICE.getBeaconAlleleResponseGet(
+        def response = BEACON_SERVICE.getBeaconAlleleResponseGet(
                 request.getReferenceName(),
                 request.getStart(),
                 request.getReferenceBases(),
@@ -261,8 +263,8 @@ class ComplianceSuite {
         assertThat(response.getDatasetAlleleResponsesList()).isNullOrEmpty();
     }
 
-    private BeaconOuterClass.BeaconAlleleRequest getSampleAlleleRequest() {
-        BeaconOuterClass.Beacon beacon = SERVICE.getBeaconGet().execute().body()
+    private BeaconAlleleRequest getSampleAlleleRequest() {
+        Beacon beacon = BEACON_SERVICE.getBeaconGet().execute().body()
         return beacon.getSampleAlleleRequests(0)
     }
 
